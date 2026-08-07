@@ -1,0 +1,267 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-loan-mgmt-collection",
+		"name": "LoanEase API",
+		"description": "Loan Eligibility & Lead Management API collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000"
+		},
+		{
+			"key": "token",
+			"value": ""
+		}
+	],
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.access_token) {",
+									"    pm.collectionVariables.set('token', jsonData.access_token);",
+									"    pm.test('Login successful', function() {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"admin123\"\n}"
+						},
+						"url": "{{base_url}}/api/auth/login"
+					}
+				}
+			]
+		},
+		{
+			"name": "Leads",
+			"item": [
+				{
+					"name": "Create Lead (Eligible)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"full_name\": \"Rahul Kumar\",\n    \"mobile\": \"9876543210\",\n    \"email\": \"rahul@email.com\",\n    \"dob\": \"1990-05-15\",\n    \"city\": \"Mumbai\",\n    \"pincode\": \"400001\",\n    \"loan_type\": \"Home Loan\",\n    \"employment_type\": \"Salaried\",\n    \"monthly_income\": 75000,\n    \"loan_amount\": 5000000,\n    \"property_value\": 8000000,\n    \"consent\": true\n}"
+						},
+						"url": "{{base_url}}/api/leads"
+					}
+				},
+				{
+					"name": "Create Lead (Low Income - Rejected)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"full_name\": \"Amit Sharma\",\n    \"mobile\": \"9123456789\",\n    \"email\": \"amit@email.com\",\n    \"dob\": \"1995-08-20\",\n    \"city\": \"Delhi\",\n    \"pincode\": \"110001\",\n    \"loan_type\": \"Loan Against Property\",\n    \"employment_type\": \"Self Employed\",\n    \"monthly_income\": 15000,\n    \"loan_amount\": 3000000,\n    \"property_value\": 3500000,\n    \"consent\": true\n}"
+						},
+						"url": "{{base_url}}/api/leads"
+					}
+				},
+				{
+					"name": "Create Lead (Duplicate - Should Fail)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"full_name\": \"Rahul Kumar\",\n    \"mobile\": \"9876543210\",\n    \"email\": \"rahul2@email.com\",\n    \"dob\": \"1990-05-15\",\n    \"city\": \"Mumbai\",\n    \"pincode\": \"400001\",\n    \"loan_type\": \"Home Loan\",\n    \"employment_type\": \"Salaried\",\n    \"monthly_income\": 75000,\n    \"loan_amount\": 5000000,\n    \"property_value\": 8000000,\n    \"consent\": true\n}"
+						},
+						"url": "{{base_url}}/api/leads",
+						"description": "Same mobile as first lead — should return 409 'Lead already exists'"
+					}
+				},
+				{
+					"name": "List Leads",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/leads?page=1&per_page=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "leads"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "per_page", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "List Leads (Search)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/leads?search=rahul",
+							"host": ["{{base_url}}"],
+							"path": ["api", "leads"],
+							"query": [
+								{"key": "search", "value": "rahul"}
+							]
+						}
+					}
+				},
+				{
+					"name": "List Leads (Filter by Status)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/leads?bre_status=Eligible",
+							"host": ["{{base_url}}"],
+							"path": ["api", "leads"],
+							"query": [
+								{"key": "bre_status", "value": "Eligible"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Lead by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"}
+						],
+						"url": "{{base_url}}/api/leads/1"
+					}
+				},
+				{
+					"name": "Export Leads to Excel",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"}
+						],
+						"url": "{{base_url}}/api/leads/export"
+					}
+				}
+			]
+		},
+		{
+			"name": "BRE Rules",
+			"item": [
+				{
+					"name": "List Rules",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"}
+						],
+						"url": "{{base_url}}/api/bre/rules"
+					}
+				},
+				{
+					"name": "Create Rule",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"},
+							{"key": "Authorization", "value": "Bearer {{token}}"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"rule_name\": \"Minimum Property Value\",\n    \"field\": \"property_value\",\n    \"operator\": \">=\",\n    \"value\": 1000000,\n    \"value_type\": \"numeric\",\n    \"is_active\": true\n}"
+						},
+						"url": "{{base_url}}/api/bre/rules"
+					}
+				},
+				{
+					"name": "Update Rule",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"},
+							{"key": "Authorization", "value": "Bearer {{token}}"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"value\": 25000,\n    \"is_active\": true\n}"
+						},
+						"url": "{{base_url}}/api/bre/rules/3",
+						"description": "Update rule ID 3 (Min Income) to 25000"
+					}
+				},
+				{
+					"name": "Delete Rule",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"}
+						],
+						"url": "{{base_url}}/api/bre/rules/6",
+						"description": "Delete rule ID 6 (the one we just created)"
+					}
+				}
+			]
+		},
+		{
+			"name": "Dashboard",
+			"item": [
+				{
+					"name": "Get Dashboard Stats",
+					"request": {
+						"method": "GET",
+						"header": [
+							{"key": "Authorization", "value": "Bearer {{token}}"}
+						],
+						"url": "{{base_url}}/api/dashboard/stats"
+					}
+				}
+			]
+		},
+		{
+			"name": "Health",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/"
+					}
+				},
+				{
+					"name": "API Info",
+					"request": {
+						"method": "GET",
+						"url": "{{base_url}}/api"
+					}
+				}
+			]
+		}
+	]
+}
